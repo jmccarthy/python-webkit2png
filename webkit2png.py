@@ -432,7 +432,7 @@ def application (environ, start_response):
                   renderer.qWebSettings[QWebSettings.PluginsEnabled] = True
 
           result = renderer.render_to_bytes(url='http://www.google.com')
-          options.output.close()
+          # options.output.close()
           QApplication.exit(0)
           success_headers = [('Content-type', 'image/jpeg'), ]
           start_response ('200 OK', success_headers)          
