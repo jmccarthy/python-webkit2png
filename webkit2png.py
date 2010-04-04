@@ -354,7 +354,7 @@ def init_qtgui(display=None, style=None, qtargs=[]):
 
 
 def application (environ, start_response):
-    app = init_qtgui("localhost:0", style=options.style)
+    app = init_qtgui("localhost:0")
     QTimer.singleShot(0, __main_qt)
 
 if __name__ == '__main__':
