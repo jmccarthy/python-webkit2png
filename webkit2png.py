@@ -354,7 +354,7 @@ def init_qtgui(display=None, style=None, qtargs=[]):
 
 
     # Enable HTTP proxy
-    if os.environ.get('http_proxy') != No:
+    if os.environ.get('http_proxy') != None:
         proxy_url = urlparse.urlparse(os.environ.get('http_proxy'))
         proxy = QNetworkProxy(QNetworkProxy.HttpProxy, proxy_url.hostname, proxy_url.port)
         QNetworkProxy.setApplicationProxy(proxy)
@@ -436,51 +436,51 @@ def init_qtgui(display=None, style=None, qtargs=[]):
 
     logger.debug("Version %s, Python %s, Qt %s", VERSION, sys.version, qVersion());
 
-# Technically, this is a QtGui application, because QWebPage requires it
-# to be. But because we will have no user interaction, and rendering can
-# not start before 'app.exec_()' is called, we have to trigger our "main"
-# by a timer event.
-def __main_qt():
-    success_headers = [('Content-type', 'image/jpeg'), ]
-    try:
-        # Initialize WebkitRenderer object
-        renderer = WebkitRenderer()
-        # renderer.width = options.geometry[0]
-        # renderer.height = options.geometry[1]
-        renderer.width = 1024
-        renderer.height = 768
-        renderer.timeout = options.timeout
-        renderer.wait = options.wait
-        renderer.format = options.format
-        renderer.grabWholeWindow = options.window
+  # Technically, this is a QtGui application, because QWebPage requires it
+  # to be. But because we will have no user interaction, and rendering can
+  # not start before 'app.exec_()' is called, we have to trigger our "main"
+  # by a timer event.
+  def __main_qt():
+      success_headers = [('Content-type', 'image/jpeg'), ]
+      try:
+          # Initialize WebkitRenderer object
+          renderer = WebkitRenderer()
+          # renderer.width = options.geometry[0]
+          # renderer.height = options.geometry[1]
+          renderer.width = 1024
+          renderer.height = 768
+          renderer.timeout = options.timeout
+          renderer.wait = options.wait
+          renderer.format = options.format
+          renderer.grabWholeWindow = options.window
 
-        if options.scale:
-            renderer.scaleRatio = options.ratio
-            # renderer.scaleToWidth = options.scale[0]
-            # renderer.scaleToHeight = options.scale[1]
-            renderer.scaleToWidth = 480
-            renderer.scaleToHeight = 320
+          if options.scale:
+              renderer.scaleRatio = options.ratio
+              # renderer.scaleToWidth = options.scale[0]
+              # renderer.scaleToHeight = options.scale[1]
+              renderer.scaleToWidth = 480
+              renderer.scaleToHeight = 320
 
-        if options.features:
-            if "javascript" in options.features:
-                renderer.qWebSettings[QWebSettings.JavascriptEnabled] = True
-            if "plugins" in options.features:
-                renderer.qWebSettings[QWebSettings.PluginsEnabled] = True
+          if options.features:
+              if "javascript" in options.features:
+                  renderer.qWebSettings[QWebSettings.JavascriptEnabled] = True
+              if "plugins" in options.features:
+                  renderer.qWebSettings[QWebSettings.PluginsEnabled] = True
 
-        result = renderer.render_to_bytes(url=options.url)
-        options.output.close()
-        QApplication.exit(0)
-        success_headers = [('Content-type', 'image/jpeg'), ]
-        start_response ('200 OK', success_headers)
-        return result
-    except RuntimeError, e:
-        error_message = "Error: %s" % e
-        logger.error(error_message)
-        print >> sys.stderr, e
-        QApplication.exit(1)
-        failure_headers = [('Content-type', 'text/plain'), ]
-        start_response ('500 Internal Server Error', failure_headers)
-        return [error_message]
+          result = renderer.render_to_bytes(url=options.url)
+          options.output.close()
+          QApplication.exit(0)
+          success_headers = [('Content-type', 'image/jpeg'), ]
+          start_response ('200 OK', success_headers)
+          return result
+      except RuntimeError, e:
+          error_message = "Error: %s" % e
+          logger.error(error_message)
+          print >> sys.stderr, e
+          QApplication.exit(1)
+          failure_headers = [('Content-type', 'text/plain'), ]
+          start_response ('500 Internal Server Error', failure_headers)
+          return [error_message]
 
     # # Initialize Qt-Application, but make this script
     # # abortable via CTRL-C
