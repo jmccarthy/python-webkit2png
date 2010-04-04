@@ -299,7 +299,8 @@ class _WebkitRendererHelper(QObject):
                 ratio = Qt.KeepAspectRatioByExpanding
             else: # 'ignore'
                 ratio = Qt.IgnoreAspectRatio
-            qImage = qImage.scaled(self.scaleToWidth, self.scaleToHeight, ratio)
+            mode = Qt.SmoothTransformation              
+            qImage = qImage.scaled(self.scaleToWidth, self.scaleToHeight, ratio, mode)
             if self.scaleRatio == 'crop':
                 qImage = qImage.copy(0, 0, self.scaleToWidth, self.scaleToHeight)
         return qImage
@@ -357,8 +358,10 @@ def application (environ, start_response):
     try:
         # Initialize WebkitRenderer object
         renderer = WebkitRenderer()
-        renderer.width = options.geometry[0]
-        renderer.height = options.geometry[1]
+        # renderer.width = options.geometry[0]
+        # renderer.height = options.geometry[1]
+        renderer.width = 1024
+        renderer.height = 768
         renderer.timeout = options.timeout
         renderer.wait = options.wait
         renderer.format = options.format
@@ -366,8 +369,10 @@ def application (environ, start_response):
 
         if options.scale:
             renderer.scaleRatio = options.ratio
-            renderer.scaleToWidth = options.scale[0]
-            renderer.scaleToHeight = options.scale[1]
+            # renderer.scaleToWidth = options.scale[0]
+            # renderer.scaleToHeight = options.scale[1]
+            renderer.scaleToWidth = 480
+            renderer.scaleToHeight = 320
 
         if options.features:
             if "javascript" in options.features:
