@@ -358,6 +358,48 @@ def application (environ, start_response):
     LOG_FILENAME = '/tmp/webkit2png.log'
     logging.basicConfig(filename=LOG_FILENAME,level=logging.WARN,)
 
+
+    description = "Creates a screenshot of a website using QtWebkit." \
+                + "This program comes with ABSOLUTELY NO WARRANTY. " \
+                + "This is free software, and you are welcome to redistribute " \
+                + "it under the terms of the GNU General Public License v2."
+
+    parser = OptionParser(usage="usage: %prog [options] <URL>",
+                          version="%prog " + VERSION + ", Copyright (c) Roland Tapken",
+                          description=description, add_help_option=True)
+    parser.add_option("-x", "--xvfb", nargs=2, type="int", dest="xvfb",
+                      help="Start an 'xvfb' instance with the given desktop size.", metavar="WIDTH HEIGHT")
+    parser.add_option("-g", "--geometry", dest="geometry", nargs=2, default=(0, 0), type="int",
+                      help="Geometry of the virtual browser window (0 means 'autodetect') [default: %default].", metavar="WIDTH HEIGHT")
+    parser.add_option("-o", "--output", dest="output",
+                      help="Write output to FILE instead of STDOUT.", metavar="FILE")
+    parser.add_option("-f", "--format", dest="format", default="png",
+                      help="Output image format [default: %default]", metavar="FORMAT")
+    parser.add_option("--scale", dest="scale", nargs=2, type="int",
+                      help="Scale the image to this size", metavar="WIDTH HEIGHT")
+    parser.add_option("--aspect-ratio", dest="ratio", type="choice", choices=["ignore", "keep", "expand", "crop"],
+                      help="One of 'ignore', 'keep', 'crop' or 'expand' [default: %default]")
+    parser.add_option("-F", "--feature", dest="features", action="append", type="choice",
+                      choices=["javascript", "plugins"],
+                      help="Enable additional Webkit features ('javascript', 'plugins')", metavar="FEATURE")
+    parser.add_option("-w", "--wait", dest="wait", default=0, type="int",
+                      help="Time to wait after loading before the screenshot is taken [default: %default]", metavar="SECONDS")
+    parser.add_option("-t", "--timeout", dest="timeout", default=0, type="int",
+                      help="Time before the request will be canceled [default: %default]", metavar="SECONDS")
+    parser.add_option("-W", "--window", dest="window", action="store_true",
+                      help="Grab whole window instead of frame (may be required for plugins)", default=False)
+    parser.add_option("", "--style", dest="style",
+                      help="Change the Qt look and feel to STYLE (e.G. 'windows').", metavar="STYLE")
+    parser.add_option("-d", "--display", dest="display",
+                      help="Connect to X server at DISPLAY.", metavar="DISPLAY")
+    parser.add_option("--debug", action="store_true", dest="debug",
+                      help="Show debugging information.", default=False)
+    
+    # Parse command line arguments and validate them (as far as we can)
+    (options,args) = parser.parse_args()
+
+
+
     # Technically, this is a QtGui application, because QWebPage requires it
     # to be. But because we will have no user interaction, and rendering can
     # not start before 'app.exec_()' is called, we have to trigger our "main"
