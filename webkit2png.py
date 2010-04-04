@@ -353,13 +353,6 @@ def init_qtgui(display=None, style=None, qtargs=[]):
     return QApplication(qtargs2)
 
 
-def application (environ, start_response):
-    app = init_qtgui("localhost:0")
-    QTimer.singleShot(0, __main_qt)
-
-if __name__ == '__main__':
-    # This code will be executed if this module is run 'as-is'.
-
     # Enable HTTP proxy
     if os.environ.get('http_proxy') != No:
         proxy_url = urlparse.urlparse(os.environ.get('http_proxy'))
@@ -489,10 +482,15 @@ if __name__ == '__main__':
             start_response ('500 Internal Server Error', failure_headers)
             return [error_message]
 
-    # Initialize Qt-Application, but make this script
-    # abortable via CTRL-C
-    app = init_qtgui(display = options.display, style=options.style)
-    signal.signal(signal.SIGINT, signal.SIG_DFL)
+    # # Initialize Qt-Application, but make this script
+    # # abortable via CTRL-C
+    # app = init_qtgui(display = options.display, style=options.style)
+    # signal.signal(signal.SIGINT, signal.SIG_DFL)
+    # 
+    # QTimer.singleShot(0, __main_qt)
+    # sys.exit(app.exec_())
 
+def application (environ, start_response):
+    app = init_qtgui("localhost:0")
     QTimer.singleShot(0, __main_qt)
-    sys.exit(app.exec_())
+
