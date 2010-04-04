@@ -457,7 +457,7 @@ if __name__ == '__main__':
     # This code will be executed if this module is run 'as-is'.
 
     # Enable HTTP proxy
-    if http_proxy in os.environ:
+    if os.environ.get('http_proxy') == None:
         proxy_url = urlparse.urlparse(os.environ.get('http_proxy'))
         proxy = QNetworkProxy(QNetworkProxy.HttpProxy, proxy_url.hostname, proxy_url.port)
         QNetworkProxy.setApplicationProxy(proxy)
