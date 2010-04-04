@@ -354,7 +354,7 @@ def init_qtgui(display=None, style=None, qtargs=[]):
 
 
 def application (environ, start_response):
-    LOG_FILENAME = 'webkit2png.log'
+    LOG_FILENAME = '/tmp/webkit2png.log'
     logging.basicConfig(filename=LOG_FILENAME,level=logging.WARN,)
 
     # Technically, this is a QtGui application, because QWebPage requires it
