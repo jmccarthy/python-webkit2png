@@ -398,8 +398,6 @@ def application (environ, start_response):
     # Parse command line arguments and validate them (as far as we can)
     (options,args) = parser.parse_args()
 
-
-
     # Technically, this is a QtGui application, because QWebPage requires it
     # to be. But because we will have no user interaction, and rendering can
     # not start before 'app.exec_()' is called, we have to trigger our "main"
@@ -436,22 +434,21 @@ def application (environ, start_response):
           # QApplication.exit(0)
           success_headers = [('Content-type', 'text/plain'), ]
           start_response ('200 OK', success_headers)          
-          tiny_image = codecs.decode('789c626001000000ffff030000060005','hex')          
+          # tiny_image = codecs.decode('789c626001000000ffff030000060005','hex')          
           return ['hello world']
       except RuntimeError, e:
           error_message = "Error: %s" % e
           logger.error(error_message)
-          print >> sys.stderr, e
+          # print >> sys.stderr, e
           QApplication.exit(1)
           failure_headers = [('Content-type', 'text/plain'), ]
-          start_response ('500 Internal Server Error', failure_headers)
-          return [error_message]
+          start_response ('200 OK', failure_headers)
+          return ['error world']
           
     # Initialize Qt-Application, but make this script
     # abortable via CTRL-C
     app = init_qtgui("localhost:0")
     # signal.signal(signal.SIGINT, signal.SIG_DFL)
-
     QTimer.singleShot(0, __main_qt)
     app.exec_()
     # sys.exit(app.exec_())
