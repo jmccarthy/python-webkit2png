@@ -356,7 +356,7 @@ def init_qtgui(display=None, style=None, qtargs=[]):
 
 def application (environ, start_response):
     LOG_FILENAME = '/tmp/webkit2png.log'
-    logging.basicConfig(filename=LOG_FILENAME,level=logging.WARN,)
+    logging.basicConfig(filename=LOG_FILENAME,level=logging.DEBUG,)
 
 
     description = "Creates a screenshot of a website using QtWebkit." \
