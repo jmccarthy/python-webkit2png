@@ -395,7 +395,7 @@ def application (environ, start_response):
           success_headers = [('Content-type', 'image/jpeg'), ]
           start_response ('200 OK', success_headers)          
           tiny_image = codecs.decode('789c626001000000ffff030000060005','hex')          
-          return tiny_image
+          return ['hello world']
       except RuntimeError, e:
           error_message = "Error: %s" % e
           logger.error(error_message)
