@@ -445,7 +445,7 @@ def application (environ, start_response):
           QApplication.exit(1)
           failure_headers = [('Content-type', 'text/plain'), ]
           start_response ('500 Internal Server Error', failure_headers)
-          return [error_message]
+          return ['error_message']
           
     # Initialize Qt-Application, but make this script
     # abortable via CTRL-C
