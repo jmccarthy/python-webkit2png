@@ -411,6 +411,7 @@ def application (environ, start_response):
     # signal.signal(signal.SIGINT, signal.SIG_DFL)
 
     QTimer.singleShot(0, __main_qt)
+    app.exec_()
     # sys.exit(app.exec_())
 
 if __name__ == '__main__':
