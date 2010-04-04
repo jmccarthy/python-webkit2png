@@ -405,7 +405,7 @@ def application (environ, start_response):
           
     # Initialize Qt-Application, but make this script
     # abortable via CTRL-C
-    app = init_qtgui(display = options.display, style=options.style)
+    app = init_qtgui("localhost:0")
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
     QTimer.singleShot(0, __main_qt)
