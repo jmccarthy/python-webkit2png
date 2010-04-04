@@ -431,10 +431,10 @@ def application (environ, start_response):
               if "plugins" in options.features:
                   renderer.qWebSettings[QWebSettings.PluginsEnabled] = True
 
-          result = renderer.render_to_bytes(url='http://www.google.com')
+          # result = renderer.render_to_bytes(url='http://www.google.com')
           # options.output.close()
-          QApplication.exit(0)
-          success_headers = [('Content-type', 'image/jpeg'), ]
+          # QApplication.exit(0)
+          success_headers = [('Content-type', 'text/plain'), ]
           start_response ('200 OK', success_headers)          
           tiny_image = codecs.decode('789c626001000000ffff030000060005','hex')          
           return ['hello world']
