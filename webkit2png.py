@@ -353,9 +353,42 @@ def init_qtgui(display=None, style=None, qtargs=[]):
 
 
 def application (environ, start_response):
-    response_headers = [('Content-type', 'text/plain'), ]
-    start_response ('200 OK', response_headers)
-    return ['Hello World']
+    success_headers = [('Content-type', 'image/jpeg'), ]
+    try:
+        # Initialize WebkitRenderer object
+        renderer = WebkitRenderer()
+        renderer.width = options.geometry[0]
+        renderer.height = options.geometry[1]
+        renderer.timeout = options.timeout
+        renderer.wait = options.wait
+        renderer.format = options.format
+        renderer.grabWholeWindow = options.window
+
+        if options.scale:
+            renderer.scaleRatio = options.ratio
+            renderer.scaleToWidth = options.scale[0]
+            renderer.scaleToHeight = options.scale[1]
+
+        if options.features:
+            if "javascript" in options.features:
+                renderer.qWebSettings[QWebSettings.JavascriptEnabled] = True
+            if "plugins" in options.features:
+                renderer.qWebSettings[QWebSettings.PluginsEnabled] = True
+
+        result = renderer.render_to_bytes(url=options.url)
+        options.output.close()
+        QApplication.exit(0)
+        success_headers = [('Content-type', 'image/jpeg'), ]
+        start_response ('200 OK', success_headers)
+        return result
+    except RuntimeError, e:
+        error_message = "Error: %s" % e
+        logger.error(error_message)
+        print >> sys.stderr, e
+        QApplication.exit(1)
+        failure_headers = [('Content-type', 'text/plain'), ]
+        start_response ('500 Internal Server Error', failure_headers)
+        return [error_message]
 
 if __name__ == '__main__':
     # This code will be executed if this module is run 'as-is'.
