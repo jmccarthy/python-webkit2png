@@ -352,11 +352,16 @@ def init_qtgui(display=None, style=None, qtargs=[]):
     return QApplication(qtargs2)
 
 
+def application (environ, start_response):
+    response_headers = [('Content-type', 'text/plain'), ]
+    start_response ('200 OK', response_headers)
+    return ['Hello World']
+
 if __name__ == '__main__':
     # This code will be executed if this module is run 'as-is'.
 
     # Enable HTTP proxy
-    if http_proxy in os.environ:
+    if os.environ.get('http_proxy') != No:
         proxy_url = urlparse.urlparse(os.environ.get('http_proxy'))
         proxy = QNetworkProxy(QNetworkProxy.HttpProxy, proxy_url.hostname, proxy_url.port)
         QNetworkProxy.setApplicationProxy(proxy)
