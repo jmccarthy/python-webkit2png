@@ -30,6 +30,7 @@ import os
 import logging
 import time
 import urlparse
+import codecs
 
 from optparse import OptionParser
 
@@ -392,8 +393,9 @@ def application (environ, start_response):
           options.output.close()
           QApplication.exit(0)
           success_headers = [('Content-type', 'image/jpeg'), ]
-          start_response ('200 OK', success_headers)
-          return result
+          start_response ('200 OK', success_headers)          
+          tiny_image = codecs.decode('789c626001000000ffff030000060005','hex')          
+          return tiny_image
       except RuntimeError, e:
           error_message = "Error: %s" % e
           logger.error(error_message)
