@@ -468,7 +468,8 @@ def application(environ, start_response):
             renderer.format = options.format
             renderer.grabWholeWindow = options.window
 
-            if options.scale:
+            # TODO clean up when removing CLI bits
+            if True or options.scale:
                 renderer.scaleRatio = options.ratio
                 renderer.scaleToWidth = config.getint('webkit2png','width')
                 renderer.scaleToHeight = config.getint('webkit2png','height')
