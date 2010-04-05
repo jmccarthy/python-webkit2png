@@ -506,7 +506,6 @@ def application(environ, start_response):
         time.sleep(0.1)
         end = datetime.now()
 
-    #success_headers = [('Content-type', 'text/plain')]
     success_headers = [('Content-type', 'image/jpeg')]
     start_response('200 OK', success_headers)
     #return ['length: %s' % str(len(result))]
