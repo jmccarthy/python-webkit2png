@@ -30,7 +30,6 @@ import os
 import logging
 import time
 import urlparse
-import codecs
 
 from optparse import OptionParser
 
@@ -53,7 +52,7 @@ class WebkitRenderer(QObject):
     directly into a 'file' resource.
 
     These methods have to be called from within Qt's main (GUI) thread.
-    An endample on how to use this is the __qt_main() method at the end
+    An example on how to use this is the __qt_main() method at the end
     of the libraries source file. More generic examples:
 
 def qt_main():
@@ -355,116 +354,21 @@ def init_qtgui(display=None, style=None, qtargs=[]):
 
 
 def application (environ, start_response):
-    LOG_FILENAME = '/tmp/webkit2png.log'
-    logging.basicConfig(filename=LOG_FILENAME,level=logging.WARN,)
-
-
-    description = "Creates a screenshot of a website using QtWebkit." \
-                + "This program comes with ABSOLUTELY NO WARRANTY. " \
-                + "This is free software, and you are welcome to redistribute " \
-                + "it under the terms of the GNU General Public License v2."
-
-    parser = OptionParser(usage="usage: %prog [options] <URL>",
-                          version="%prog " + VERSION + ", Copyright (c) Roland Tapken",
-                          description=description, add_help_option=True)
-    parser.add_option("-x", "--xvfb", nargs=2, type="int", dest="xvfb",
-                      help="Start an 'xvfb' instance with the given desktop size.", metavar="WIDTH HEIGHT")
-    parser.add_option("-g", "--geometry", dest="geometry", nargs=2, default=(0, 0), type="int",
-                      help="Geometry of the virtual browser window (0 means 'autodetect') [default: %default].", metavar="WIDTH HEIGHT")
-    parser.add_option("-o", "--output", dest="output",
-                      help="Write output to FILE instead of STDOUT.", metavar="FILE")
-    parser.add_option("-f", "--format", dest="format", default="png",
-                      help="Output image format [default: %default]", metavar="FORMAT")
-    parser.add_option("--scale", dest="scale", nargs=2, type="int",
-                      help="Scale the image to this size", metavar="WIDTH HEIGHT")
-    parser.add_option("--aspect-ratio", dest="ratio", type="choice", choices=["ignore", "keep", "expand", "crop"],
-                      help="One of 'ignore', 'keep', 'crop' or 'expand' [default: %default]")
-    parser.add_option("-F", "--feature", dest="features", action="append", type="choice",
-                      choices=["javascript", "plugins"],
-                      help="Enable additional Webkit features ('javascript', 'plugins')", metavar="FEATURE")
-    parser.add_option("-w", "--wait", dest="wait", default=0, type="int",
-                      help="Time to wait after loading before the screenshot is taken [default: %default]", metavar="SECONDS")
-    parser.add_option("-t", "--timeout", dest="timeout", default=0, type="int",
-                      help="Time before the request will be canceled [default: %default]", metavar="SECONDS")
-    parser.add_option("-W", "--window", dest="window", action="store_true",
-                      help="Grab whole window instead of frame (may be required for plugins)", default=False)
-    parser.add_option("", "--style", dest="style",
-                      help="Change the Qt look and feel to STYLE (e.G. 'windows').", metavar="STYLE")
-    parser.add_option("-d", "--display", dest="display",
-                      help="Connect to X server at DISPLAY.", metavar="DISPLAY")
-    parser.add_option("--debug", action="store_true", dest="debug",
-                      help="Show debugging information.", default=False)
-    
-    # Parse command line arguments and validate them (as far as we can)
-    (options,args) = parser.parse_args()
-
-    # Technically, this is a QtGui application, because QWebPage requires it
-    # to be. But because we will have no user interaction, and rendering can
-    # not start before 'app.exec_()' is called, we have to trigger our "main"
-    # by a timer event.
-    def __main_qt():
-      success_headers = [('Content-type', 'image/jpeg'), ]
-      try:
-          # Initialize WebkitRenderer object
-          renderer = WebkitRenderer()
-          # renderer.width = options.geometry[0]
-          # renderer.height = options.geometry[1]
-          renderer.width = 1024
-          renderer.height = 768
-          renderer.timeout = options.timeout
-          renderer.wait = options.wait
-          renderer.format = options.format
-          renderer.grabWholeWindow = options.window
-
-          if options.scale:
-              renderer.scaleRatio = options.ratio
-              # renderer.scaleToWidth = options.scale[0]
-              # renderer.scaleToHeight = options.scale[1]
-              renderer.scaleToWidth = 480
-              renderer.scaleToHeight = 320
-
-          if options.features:
-              if "javascript" in options.features:
-                  renderer.qWebSettings[QWebSettings.JavascriptEnabled] = True
-              if "plugins" in options.features:
-                  renderer.qWebSettings[QWebSettings.PluginsEnabled] = True
-
-          # result = renderer.render_to_bytes(url='http://www.google.com')
-          # options.output.close()
-          # QApplication.exit(0)
-          success_headers = [('Content-type', 'text/plain'), ]
-          start_response ('200 OK', success_headers)          
-          # tiny_image = codecs.decode('789c626001000000ffff030000060005','hex')          
-          return ['hello world']
-      except RuntimeError, e:
-          error_message = "Error: %s" % e
-          logger.error(error_message)
-          # print >> sys.stderr, e
-          QApplication.exit(1)
-          failure_headers = [('Content-type', 'text/plain'), ]
-          start_response ('200 OK', failure_headers)
-          return ['error world']
-          
-    # Initialize Qt-Application, but make this script
-    # abortable via CTRL-C
-    app = init_qtgui()
-    # signal.signal(signal.SIGINT, signal.SIG_DFL)
+    app = init_qtgui("localhost:0", style=options.style)
     QTimer.singleShot(0, __main_qt)
-    app.exec_()
-    # sys.exit(app.exec_())
 
 if __name__ == '__main__':
     # This code will be executed if this module is run 'as-is'.
 
     # Enable HTTP proxy
-    if os.environ.get('http_proxy') != None:
+    if os.environ.get('http_proxy') != No:
         proxy_url = urlparse.urlparse(os.environ.get('http_proxy'))
         proxy = QNetworkProxy(QNetworkProxy.HttpProxy, proxy_url.hostname, proxy_url.port)
         QNetworkProxy.setApplicationProxy(proxy)
 
     LOG_FILENAME = 'webkit2png.log'
     logging.basicConfig(filename=LOG_FILENAME,level=logging.WARN,)
-  
+    
     # Parse command line arguments.
     # Syntax:
     # $0 [--xvfb|--display=DISPLAY] [--debug] [--output=FILENAME] <URL>
@@ -504,7 +408,7 @@ if __name__ == '__main__':
                       help="Connect to X server at DISPLAY.", metavar="DISPLAY")
     parser.add_option("--debug", action="store_true", dest="debug",
                       help="Show debugging information.", default=False)
-  
+    
     # Parse command line arguments and validate them (as far as we can)
     (options,args) = parser.parse_args()
     if len(args) != 1:
@@ -517,7 +421,7 @@ if __name__ == '__main__':
     if options.debug:
         logger.basicConfig(level=logger.DEBUG)
 
-    if true || options.xvfb:
+    if options.xvfb:
         # Start 'xvfb' instance by replacing the current process
         newArgs = ["xvfb-run", "--auto-servernum", "--server-args=-screen 0, %dx%dx24" % options.xvfb, sys.argv[0]]
         skipArgs = 0
@@ -530,7 +434,7 @@ if __name__ == '__main__':
                 newArgs.append(sys.argv[i])
         logger.debug("Executing %s" % " ".join(newArgs))
         os.execvp(newArgs[0],newArgs[1:])
-      
+        
     # Prepare outout ("1" means STDOUT)
     if options.output == None:
         options.output = sys.stdout
@@ -544,14 +448,14 @@ if __name__ == '__main__':
     # not start before 'app.exec_()' is called, we have to trigger our "main"
     # by a timer event.
     def __main_qt():
-        # Render the page.
-        # If this method times out or loading failed, a
-        # RuntimeException is thrown
+        success_headers = [('Content-type', 'image/jpeg'), ]
         try:
             # Initialize WebkitRenderer object
             renderer = WebkitRenderer()
-            renderer.width = options.geometry[0]
-            renderer.height = options.geometry[1]
+            # renderer.width = options.geometry[0]
+            # renderer.height = options.geometry[1]
+            renderer.width = 1024
+            renderer.height = 768
             renderer.timeout = options.timeout
             renderer.wait = options.wait
             renderer.format = options.format
@@ -559,8 +463,10 @@ if __name__ == '__main__':
 
             if options.scale:
                 renderer.scaleRatio = options.ratio
-                renderer.scaleToWidth = options.scale[0]
-                renderer.scaleToHeight = options.scale[1]
+                # renderer.scaleToWidth = options.scale[0]
+                # renderer.scaleToHeight = options.scale[1]
+                renderer.scaleToWidth = 480
+                renderer.scaleToHeight = 320
 
             if options.features:
                 if "javascript" in options.features:
@@ -568,13 +474,20 @@ if __name__ == '__main__':
                 if "plugins" in options.features:
                     renderer.qWebSettings[QWebSettings.PluginsEnabled] = True
 
-            renderer.render_to_file(url=options.url, file=options.output)
+            result = renderer.render_to_bytes(url=options.url)
             options.output.close()
             QApplication.exit(0)
+            success_headers = [('Content-type', 'image/jpeg'), ]
+            start_response ('200 OK', success_headers)
+            return result
         except RuntimeError, e:
-            logger.error("main: %s" % e)
+            error_message = "Error: %s" % e
+            logger.error(error_message)
             print >> sys.stderr, e
             QApplication.exit(1)
+            failure_headers = [('Content-type', 'text/plain'), ]
+            start_response ('500 Internal Server Error', failure_headers)
+            return [error_message]
 
     # Initialize Qt-Application, but make this script
     # abortable via CTRL-C
