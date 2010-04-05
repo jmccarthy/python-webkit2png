@@ -33,6 +33,7 @@ import urlparse
 
 from datetime import datetime
 from optparse import OptionParser
+from webob import Request
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
@@ -332,7 +333,7 @@ class _WebkitRendererHelper(QObject):
 
 def init_qtgui(display=None, style=None, qtargs=[]):
     """Initiates the QApplication environment using the given args."""
-    if QApplication.instance():
+    if False and QApplication.instance():
         logger.debug("QApplication has already been instantiated. \
                         Ignoring given arguments and returning existing QApplication.")
         return QApplication.instance()
@@ -356,6 +357,7 @@ def init_qtgui(display=None, style=None, qtargs=[]):
 
 
 def application(environ, start_response):
+    request = Request(environ)
     # This code will be executed if this module is run 'as-is'.
 
     # Enable HTTP proxy
@@ -365,7 +367,7 @@ def application(environ, start_response):
         QNetworkProxy.setApplicationProxy(proxy)
 
     LOG_FILENAME = '/tmp/webkit2png.log'
-    logging.basicConfig(filename=LOG_FILENAME,level=logging.WARN,)
+    logging.basicConfig(filename=LOG_FILENAME,level=logging.DEBUG,)
     
     # Parse command line arguments.
     # Syntax:
@@ -385,7 +387,7 @@ def application(environ, start_response):
                       help="Geometry of the virtual browser window (0 means 'autodetect') [default: %default].", metavar="WIDTH HEIGHT")
     parser.add_option("-o", "--output", dest="output",
                       help="Write output to FILE instead of STDOUT.", metavar="FILE")
-    parser.add_option("-f", "--format", dest="format", default="png",
+    parser.add_option("-f", "--format", dest="format", default="jpg",
                       help="Output image format [default: %default]", metavar="FORMAT")
     parser.add_option("--scale", dest="scale", nargs=2, type="int",
                       help="Scale the image to this size", metavar="WIDTH HEIGHT")
@@ -413,7 +415,7 @@ def application(environ, start_response):
     #    parser.error("incorrect number of arguments")
     if options.display and options.xvfb:
         parser.error("options -x and -d are mutually exclusive")
-    options.url = environ.get('url')
+    options.url = request.GET['url']
     #args[0]
 
 
@@ -448,7 +450,6 @@ def application(environ, start_response):
     # not start before 'app.exec_()' is called, we have to trigger our "main"
     # by a timer event.
     def __main_qt():
-        success_headers = [('Content-type', 'image/jpeg'), ]
         # Render the page.
         # If this method times out or loading failed, a
         # RuntimeException is thrown
@@ -473,16 +474,10 @@ def application(environ, start_response):
                 if "plugins" in options.features:
                     renderer.qWebSettings[QWebSettings.PluginsEnabled] = True
 
-            #result = renderer.render_to_bytes(url=options.url)
-            #result.append(QByteArray.fromRawData('asdfsdfsasdfasdfd asfasdff'))
             result.append(renderer.render_to_bytes(url=options.url))
-            #renderer.render_to_file('http://www.google.com',open('/tmp/google.jpg', "w"))
-            #options.output.close()
+            QApplication.closeAllWindows()
             QApplication.exit(0)
-	    success_headers = [('Content-type', 'image/jpeg')]
-	    start_response('200 OK', success_headers)
-	    #return ['%s'%result.__class__]
-	    return ['length: %s' % str(len(result))]
+            QApplication.quit()
         except RuntimeError, e:
             error_message = "Error: %s" % e
             logger.error(error_message)
@@ -495,7 +490,7 @@ def application(environ, start_response):
     # Initialize Qt-Application, but make this script
     # abortable via CTRL-C
     app = init_qtgui(":99")
-    signal.signal(signal.SIGINT, signal.SIG_DFL)
+    #signal.signal(signal.SIGINT, signal.SIG_DFL)
     QTimer.singleShot(0, __main_qt)
     #sys.exit(app.exec_())
     app.exec_()
@@ -505,12 +500,11 @@ def application(environ, start_response):
     while len(result) == 0 and (end-start).seconds < TIMEOUT:
         time.sleep(0.1)
         end = datetime.now()
+    app.exit()
 
-    success_headers = [('Content-type', 'image/jpeg')]
+    success_headers = [('Content-type', 'image/jpeg'),('Content-length', str(len(result))),('Cache-Control','no-cache'),('Pragma','no-cache'),('ETag',request.GET['url'])]
     start_response('200 OK', success_headers)
-    #return ['length: %s' % str(len(result))]
     return result
-
 
 if __name__ == '__main__':
     application(None,None)
