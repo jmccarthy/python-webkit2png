@@ -31,6 +31,7 @@ import logging
 import time
 import urlparse
 
+from datetime import datetime
 from optparse import OptionParser
 
 from PyQt4.QtCore import *
@@ -39,7 +40,9 @@ from PyQt4.QtWebKit import *
 from PyQt4.QtNetwork import *
 
 VERSION="20091224"
+TIMEOUT=10 # seconds
 logger = logging.getLogger('webkit2png');
+result = QByteArray()
 
 # Class for Website-Rendering. Uses QWebPage, which
 # requires a running QtGui to work.
@@ -352,54 +355,16 @@ def init_qtgui(display=None, style=None, qtargs=[]):
     return QApplication(qtargs2)
 
 
-def application (environ, start_response):
-    success_headers = [('Content-type', 'image/jpeg'), ]
-    try:
-        # Initialize WebkitRenderer object
-        renderer = WebkitRenderer()
-        renderer.width = options.geometry[0]
-        renderer.height = options.geometry[1]
-        renderer.timeout = options.timeout
-        renderer.wait = options.wait
-        renderer.format = options.format
-        renderer.grabWholeWindow = options.window
-
-        if options.scale:
-            renderer.scaleRatio = options.ratio
-            renderer.scaleToWidth = options.scale[0]
-            renderer.scaleToHeight = options.scale[1]
-
-        if options.features:
-            if "javascript" in options.features:
-                renderer.qWebSettings[QWebSettings.JavascriptEnabled] = True
-            if "plugins" in options.features:
-                renderer.qWebSettings[QWebSettings.PluginsEnabled] = True
-
-        result = renderer.render_to_bytes(url=options.url)
-        options.output.close()
-        QApplication.exit(0)
-        success_headers = [('Content-type', 'image/jpeg'), ]
-        start_response ('200 OK', success_headers)
-        return result
-    except RuntimeError, e:
-        error_message = "Error: %s" % e
-        logger.error(error_message)
-        print >> sys.stderr, e
-        QApplication.exit(1)
-        failure_headers = [('Content-type', 'text/plain'), ]
-        start_response ('500 Internal Server Error', failure_headers)
-        return [error_message]
-
-if __name__ == '__main__':
+def application(environ, start_response):
     # This code will be executed if this module is run 'as-is'.
 
     # Enable HTTP proxy
-    if os.environ.get('http_proxy') != No:
+    if os.environ.get('http_proxy') != None:
         proxy_url = urlparse.urlparse(os.environ.get('http_proxy'))
         proxy = QNetworkProxy(QNetworkProxy.HttpProxy, proxy_url.hostname, proxy_url.port)
         QNetworkProxy.setApplicationProxy(proxy)
 
-    LOG_FILENAME = 'webkit2png.log'
+    LOG_FILENAME = '/tmp/webkit2png.log'
     logging.basicConfig(filename=LOG_FILENAME,level=logging.WARN,)
     
     # Parse command line arguments.
@@ -444,19 +409,21 @@ if __name__ == '__main__':
     
     # Parse command line arguments and validate them (as far as we can)
     (options,args) = parser.parse_args()
-    if len(args) != 1:
-        parser.error("incorrect number of arguments")
+    #if len(args) != 1:
+    #    parser.error("incorrect number of arguments")
     if options.display and options.xvfb:
         parser.error("options -x and -d are mutually exclusive")
-    options.url = args[0]
+    options.url = environ.get('url')
+    #args[0]
+
 
     # Enable output of debugging information
     if options.debug:
         logger.basicConfig(level=logger.DEBUG)
 
-    if options.xvfb:
+    if False or options.xvfb:
         # Start 'xvfb' instance by replacing the current process
-        newArgs = ["xvfb-run", "--auto-servernum", "--server-args=-screen 0, %dx%dx24" % options.xvfb, sys.argv[0]]
+        newArgs = ["xvfb-run", "--auto-servernum", "--server-args=-screen 0, 1024x768x24", sys.argv[0]]
         skipArgs = 0
         for i in range(1, len(sys.argv)):
             if skipArgs > 0:
@@ -481,6 +448,7 @@ if __name__ == '__main__':
     # not start before 'app.exec_()' is called, we have to trigger our "main"
     # by a timer event.
     def __main_qt():
+        success_headers = [('Content-type', 'image/jpeg'), ]
         # Render the page.
         # If this method times out or loading failed, a
         # RuntimeException is thrown
@@ -505,18 +473,45 @@ if __name__ == '__main__':
                 if "plugins" in options.features:
                     renderer.qWebSettings[QWebSettings.PluginsEnabled] = True
 
-            renderer.render_to_file(url=options.url, file=options.output)
-            options.output.close()
+            #result = renderer.render_to_bytes(url=options.url)
+            #result.append(QByteArray.fromRawData('asdfsdfsasdfasdfd asfasdff'))
+            result.append(renderer.render_to_bytes(url=options.url))
+            #renderer.render_to_file('http://www.google.com',open('/tmp/google.jpg', "w"))
+            #options.output.close()
             QApplication.exit(0)
+	    success_headers = [('Content-type', 'image/jpeg')]
+	    start_response('200 OK', success_headers)
+	    #return ['%s'%result.__class__]
+	    return ['length: %s' % str(len(result))]
         except RuntimeError, e:
-            logger.error("main: %s" % e)
+            error_message = "Error: %s" % e
+            logger.error(error_message)
             print >> sys.stderr, e
             QApplication.exit(1)
+            failure_headers = [('Content-type', 'text/plain'), ]
+            start_response ('500 Internal Server Error', failure_headers)
+            return [error_message]
 
     # Initialize Qt-Application, but make this script
     # abortable via CTRL-C
-    app = init_qtgui(display = options.display, style=options.style)
+    app = init_qtgui(":99")
     signal.signal(signal.SIGINT, signal.SIG_DFL)
-
     QTimer.singleShot(0, __main_qt)
-    sys.exit(app.exec_())
+    #sys.exit(app.exec_())
+    app.exec_()
+
+    start = datetime.now()
+    end = datetime.now()
+    while len(result) == 0 and (end-start).seconds < TIMEOUT:
+        time.sleep(0.1)
+        end = datetime.now()
+
+    #success_headers = [('Content-type', 'text/plain')]
+    success_headers = [('Content-type', 'image/jpeg')]
+    start_response('200 OK', success_headers)
+    #return ['length: %s' % str(len(result))]
+    return result
+
+
+if __name__ == '__main__':
+    application(None,None)
