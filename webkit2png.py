@@ -30,6 +30,7 @@ import os
 import logging
 import time
 import urlparse
+import ConfigParser
 
 from datetime import datetime
 from optparse import OptionParser
@@ -41,9 +42,13 @@ from PyQt4.QtWebKit import *
 from PyQt4.QtNetwork import *
 
 VERSION="20091224"
-TIMEOUT=10 # seconds
-logger = logging.getLogger('webkit2png');
 result = QByteArray()
+
+config = ConfigParser.ConfigParser()
+config.readfp(open('webkit2png.cfg'))
+
+logger = logging.getLogger(config.get('webkit2png','log_path'));
+TIMEOUT=config.getint('webkit2png','timeout')
 
 # Class for Website-Rendering. Uses QWebPage, which
 # requires a running QtGui to work.
@@ -456,8 +461,8 @@ def application(environ, start_response):
         try:
             # Initialize WebkitRenderer object
             renderer = WebkitRenderer()
-            renderer.width = options.geometry[0]
-            renderer.height = options.geometry[1]
+            renderer.width = config.getint('webkit2png','browser_width')
+            renderer.height = config.getint('webkit2png','browser_height')
             renderer.timeout = options.timeout
             renderer.wait = options.wait
             renderer.format = options.format
@@ -465,8 +470,8 @@ def application(environ, start_response):
 
             if options.scale:
                 renderer.scaleRatio = options.ratio
-                renderer.scaleToWidth = options.scale[0]
-                renderer.scaleToHeight = options.scale[1]
+                renderer.scaleToWidth = config.getint('webkit2png','width')
+                renderer.scaleToHeight = config.getint('webkit2png','height')
 
             if options.features:
                 if "javascript" in options.features:
