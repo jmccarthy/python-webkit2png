@@ -308,7 +308,8 @@ class _WebkitRendererHelper(QObject):
                 ratio = Qt.KeepAspectRatioByExpanding
             else: # 'ignore'
                 ratio = Qt.IgnoreAspectRatio
-            qImage = qImage.scaled(self.scaleToWidth, self.scaleToHeight, ratio)
+            mode = Qt.SmoothTransformation
+            qImage = qImage.scaled(self.scaleToWidth, self.scaleToHeight, ratio, mode)
             if self.scaleRatio == 'crop':
                 qImage = qImage.copy(0, 0, self.scaleToWidth, self.scaleToHeight)
         return qImage
