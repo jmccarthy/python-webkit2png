@@ -487,20 +487,20 @@ def application(environ, start_response):
             start_response ('500 Internal Server Error', failure_headers)
             return [error_message]
 
+    result.clear() # instantiated once at system start, clear before each run
+
     # Initialize Qt-Application, but make this script
     # abortable via CTRL-C
     app = init_qtgui(":99")
-    #signal.signal(signal.SIGINT, signal.SIG_DFL)
     QTimer.singleShot(0, __main_qt)
-    #sys.exit(app.exec_())
     app.exec_()
 
     start = datetime.now()
     end = datetime.now()
+    logger.debug('Starting while loop with len(result) %s' % len(result))
     while len(result) == 0 and (end-start).seconds < TIMEOUT:
         time.sleep(0.1)
         end = datetime.now()
-    app.exit()
 
     success_headers = [('Content-type', 'image/jpeg'),('Content-length', str(len(result))),('Cache-Control','no-cache'),('Pragma','no-cache'),('ETag',request.GET['url'])]
     start_response('200 OK', success_headers)
@@ -508,3 +508,4 @@ def application(environ, start_response):
 
 if __name__ == '__main__':
     application(None,None)
+
