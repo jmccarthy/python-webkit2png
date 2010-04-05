@@ -53,7 +53,7 @@ class WebkitRenderer(QObject):
     directly into a 'file' resource.
 
     These methods have to be called from within Qt's main (GUI) thread.
-    An example on how to use this is the __qt_main() method at the end
+    An endample on how to use this is the __qt_main() method at the end
     of the libraries source file. More generic examples:
 
 def qt_main():
@@ -447,7 +447,7 @@ def application (environ, start_response):
           
     # Initialize Qt-Application, but make this script
     # abortable via CTRL-C
-    app = init_qtgui("localhost:0")
+    app = init_qtgui()
     # signal.signal(signal.SIGINT, signal.SIG_DFL)
     QTimer.singleShot(0, __main_qt)
     app.exec_()
@@ -517,7 +517,7 @@ if __name__ == '__main__':
     if options.debug:
         logger.basicConfig(level=logger.DEBUG)
 
-    if options.xvfb:
+    if true || options.xvfb:
         # Start 'xvfb' instance by replacing the current process
         newArgs = ["xvfb-run", "--auto-servernum", "--server-args=-screen 0, %dx%dx24" % options.xvfb, sys.argv[0]]
         skipArgs = 0
