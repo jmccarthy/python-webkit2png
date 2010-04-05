@@ -45,7 +45,7 @@ VERSION="20091224"
 result = QByteArray()
 
 config = ConfigParser.ConfigParser()
-config.readfp(open('webkit2png.cfg'))
+config.readfp(open('%s/webkit2png.cfg' % os.path.dirname(__file__)))
 
 logger = logging.getLogger(config.get('webkit2png','log_path'));
 TIMEOUT=config.getint('webkit2png','timeout')
