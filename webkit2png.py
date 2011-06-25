@@ -32,6 +32,11 @@ import time
 import urlparse
 import ConfigParser
 
+import tornado.web
+import tornado.wsgi
+import tornado.httpserver
+import wsgiref.simple_server
+
 from datetime import datetime
 from optparse import OptionParser
 from webob import Request
@@ -45,8 +50,7 @@ VERSION="20091224"
 result = QByteArray()
 
 config = ConfigParser.ConfigParser()
-config.readfp(open('%s/webkit2png.cfg' % os.path.dirname(__file__)))
-
+config.readfp(open('./webkit2png.cfg'))
 logger = logging.getLogger(config.get('webkit2png','log_path'));
 TIMEOUT=config.getint('webkit2png','timeout')
 
@@ -514,5 +518,7 @@ def application(environ, start_response):
     return result
 
 if __name__ == '__main__':
-    application(None,None)
-
+    container = tornado.wsgi.WSGIContainer(application)
+    http_server = tornado.httpserver.HTTPServer(container)
+    http_server.listen(8888)
+    tornado.ioloop.IOLoop.instance().start()
